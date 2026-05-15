@@ -1,0 +1,1336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pausa — Rest makes you better.</title>
+
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230071E3'/><rect x='22' y='18' width='6' height='28' rx='2' fill='white'/><rect x='36' y='18' width='6' height='28' rx='2' fill='white'/></svg>" />
+
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --ink: #1A1A2E;
+    --ink-soft: #4a4a63;
+    --ink-mute: #6e6e80;
+    --accent: #0071E3;
+    --accent-deep: #0050CC;
+    --surface: #FFFFFF;
+    --c-curiosity:   #A5CAFF;
+    --c-guess:       #FFB3BA;
+    --c-eyes:        #96E3A0;
+    --c-reset:       #FFCBA0;
+    --c-move:        #8ED9F5;
+    --c-recharge:    #C9A5FF;
+    --c-perspective: #BCC0D4;
+    --c-challenges:  #8FD9BB;
+  }
+
+  *,*::before,*::after { box-sizing: border-box; }
+  html,body { margin:0; padding:0; }
+  html { scroll-behavior: auto; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 21px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  a, button, input, label, select, [role="button"] { cursor: none; }
+
+  #cursor-dot {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background: #1f85ea;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.25s;
+    will-change: left, top;
+  }
+
+  #cursor-ring {
+    position: fixed;
+    width: 32px;
+    height: 32px;
+    background: var(--surface);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    opacity: 0.4;
+    transition: width 0.2s ease, height 0.2s ease, opacity 0.25s, border-color 0.2s;
+    will-change: left, top;
+  }
+
+  body.cursor-hover #cursor-ring {
+    width: 46px;
+    height: 46px;
+    opacity: 0.7;
+  }
+
+  @keyframes trail-fade {
+    0%   { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0;   transform: translate(-50%, -50%) scale(0.1); }
+  }
+
+  .cursor-trail {
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9997;
+    animation: trail-fade 0.7s ease-out forwards;
+  }
+
+  .gradient-bg { background: var(--bg); }
+
+  .bg-gradient {
+    position: absolute; inset: 0; z-index: 0;
+    background: #8BC4FB;
+    background: radial-gradient(circle, rgba(139, 196, 251, 0.76) 0%, rgba(255, 255, 255, 1) 100%);
+    opacity: 0; pointer-events: none;
+  }
+
+
+.ambient { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--bg); }
+
+  h1, h2, .h-display {
+    font-family: -apple-system, "SF Pro Display", "SF Pro Rounded", "Helvetica Neue", sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-size: clamp(34px, 5.8vw, 72px);
+    line-height: 1.05;
+    margin: 0;
+    text-wrap: balance;
+  }
+  p, .body { font-family: inherit; font-size: 21px; line-height: 1.5; color: var(--ink-soft); margin: 0; text-wrap: pretty; }
+
+  .section { padding: 120px 32px; position: relative; }
+  .container { max-width: 1120px; margin: 0 auto; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 80px; align-items: center; }
+  @media (max-width: 880px) { .section { padding: 80px 24px; } .split { grid-template-columns: 1fr; gap: 48px; } }
+
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+    height: 52px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 24px; background: rgba(245,245,247,0.72);
+    backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+  }
+  .nav .brand { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; }
+  .nav .brand-mark { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(180deg, var(--accent), var(--accent-deep)); display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,113,227,0.35); }
+  .nav .brand-mark::before, .nav .brand-mark::after { content: ""; width: 3px; height: 11px; background: white; border-radius: 1.5px; display: inline-block; margin: 0 1px; }
+  .nav .links { display: flex; gap: 28px; font-size: 13px; color: var(--ink-soft); }
+  .nav .links a { color: inherit; text-decoration: none; }
+  .nav .links a:hover { color: var(--ink); }
+  @media (max-width: 600px) { .nav .links { display:none; } }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    color: white;
+    font: 600 22px/1 -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+    letter-spacing: -0.01em;
+    border: 0; padding: 24px 44px; border-radius: 980px;
+     text-decoration: none;
+    box-shadow: 0 30px 60px -15px rgba(0,113,227,0.45), 0 10px 20px -6px rgba(0,113,227,0.30);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; will-change: transform;
+  }
+  .cta:hover { transform: translateY(-2px); box-shadow: 0 40px 80px -15px rgba(0,113,227,0.50), 0 14px 28px -6px rgba(0,113,227,0.35); }
+  .cta:active { transform: scale(0.98); }
+  .cta .arrow, .cta .icon { width: 1em; height: 1em; }
+
+  .app-window {
+    width: 340px; border-radius: 18px;
+    background: rgba(255,255,255,0.55);
+    backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.4);
+    box-shadow: 0 60px 80px -40px rgba(20,20,40,0.12), 0 20px 40px -20px rgba(20,20,40,0.06);
+    padding: 14px 18px 22px; position: relative; transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+  }
+  .app-window:hover { transform: scale(1.02); box-shadow: 0 70px 100px -40px rgba(20,20,40,0.16), 0 24px 48px -20px rgba(20,20,40,0.08); }
+  .app-window::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0)); pointer-events: none; }
+
+  .aw-top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; margin-bottom: 14px; position: relative; z-index: 1; }
+  .aw-trophy { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #C9A200; justify-self: start; }
+  .aw-title { font: 600 15px/1 -apple-system, "SF Pro Rounded", "SF Pro Display", sans-serif; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 6px; color: var(--ink); justify-self: center; }
+  .aw-title .pause-glyph { width: 14px; height: 14px; border-radius: 50%; background: rgba(0,0,0,0.45); display: inline-grid; place-items: center; color: white; font-size: 8px; font-weight: 700; line-height: 1; }
+  .aw-title .pause-glyph::before { content: ""; width: 2px; height: 5px; background: white; box-shadow: 3px 0 0 white; border-radius: 1px; }
+  .aw-settings { justify-self: end; width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); display: grid; place-items: center; color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+  .aw-settings svg { width: 14px; height: 14px; }
+
+  .wheel-stage { position: relative; width: 240px; height: 240px; margin: 8px auto 0; }
+  .wheel-shadow { position: absolute; inset: 6px 0 -6px 0; border-radius: 50%; background: radial-gradient(closest-side, rgba(0,0,0,0.18), rgba(0,0,0,0) 70%); filter: blur(8px); z-index: 0; }
+  .wheel { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 337.5deg, var(--c-curiosity) 0deg 45deg, var(--c-guess) 45deg 90deg, var(--c-eyes) 90deg 135deg, var(--c-reset) 135deg 180deg, var(--c-move) 180deg 225deg, var(--c-recharge) 225deg 270deg, var(--c-perspective) 270deg 315deg, var(--c-challenges) 315deg 360deg); box-shadow: 0 6px 14px rgba(0,0,0,0.08), inset 0 0 0 6px rgba(255,255,255,0.55), inset 0 0 0 7px rgba(255,255,255,0.15); z-index: 1; will-change: transform; }
+  .wheel::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(closest-side at 50% 50%, rgba(255,255,255,0.55), rgba(255,255,255,0) 70%); mix-blend-mode: soft-light; pointer-events: none; }
+  .wheel-dividers { position: absolute; inset: 0; pointer-events: none; z-index: 2; will-change: transform; }
+  .wheel-dividers span { position: absolute; top: 50%; left: 50%; width: 50%; height: 1.4px; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.85)); transform-origin: 0 50%; }
+  .wheel-emoji { position: absolute; inset: 0; z-index: 3; pointer-events: none; will-change: transform; }
+  .wheel-emoji span { position: absolute; left: 50%; top: 50%; font-size: 22px; line-height: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
+  .wheel-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(180deg, #2a8aee, var(--accent-deep)); box-shadow: 0 8px 18px rgba(0,113,227,0.45), inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -3px 6px rgba(0,0,0,0.18); border: 1.5px solid rgba(255,255,255,0.35); display: grid; place-items: center; z-index: 4; color: white; }
+  .wheel-center::before { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%); pointer-events: none; }
+  .wheel-center svg { width: 22px; height: 22px; position: relative; z-index: 1; }
+  .wheel-pointer { position: absolute; top: -14px; left: 50%; width: 16px; height: 14px; transform: translateX(-50%); z-index: 5; filter: drop-shadow(0 0 5px rgba(0,113,227,0.60)); }
+  .wheel-pointer::before { content: ""; display: block; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 14px solid var(--accent); }
+
+  .wheel-caption { text-align: center; margin-top: 22px; position: relative; z-index: 1; }
+  .wheel-caption .ttl { font: 600 15px/1.2 -apple-system, "SF Pro Rounded", "SF Pro Display", sans-serif; color: var(--ink); letter-spacing: -0.01em; }
+  .wheel-caption .sub { font-size: 12.5px; color: var(--ink-mute); margin-top: 4px; }
+
+  .slice-label { position: absolute; top: 50%; right: -190px; transform: translateY(-50%); opacity: 0; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+  .slice-label .dot { width: 14px; height: 14px; border-radius: 50%; background: var(--c-curiosity); box-shadow: 0 0 0 4px rgba(246,200,95,0.35); }
+  .slice-label .label { font: 600 17px/1 -apple-system, "SF Pro Rounded", sans-serif; color: var(--ink); letter-spacing: -0.01em; }
+  .slice-label .lbl-sub { display: block; margin-top: 4px; font: 400 13px/1.2 -apple-system, "SF Pro Text", sans-serif; color: var(--ink-mute); }
+  @media (max-width: 880px) { .slice-label { right: auto; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); } }
+
+  .aw-reset-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 999px; font: 500 12px/1 -apple-system, sans-serif; color: var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .aw-reset-pill .ico { font-size: 13px; }
+  .activity { text-align: center; padding: 4px 4px 0; position: relative; z-index: 1; }
+  .activity .top-row { display: flex; justify-content: center; margin-bottom: 14px; }
+  .activity .emoji { font-size: 50px; line-height: 1; margin: 4px 0 14px; display: inline-block; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08)); }
+  .activity .a-title { font: 600 15px/1.2 -apple-system, "SF Pro Rounded", sans-serif; color: var(--ink); letter-spacing: -0.01em; margin-bottom: 6px; }
+  .activity .a-body { font-size: 12.5px; line-height: 1.4; color: var(--ink-mute); max-width: 240px; margin: 0 auto 18px; }
+  .timer-stage { position: relative; width: 118px; height: 118px; margin: 4px auto 0; }
+  .timer-stage svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .timer-stage .track { fill: none; stroke: rgba(0,0,0,0.08); stroke-width: 5; }
+  .timer-stage .arc { fill: none; stroke: var(--accent); stroke-width: 5; stroke-linecap: round; transition: stroke 0.05s linear; }
+  .timer-stage .time { position: absolute; inset: 0; display: grid; place-items: center; font: 600 26px/1 ui-monospace, "SF Mono", "Menlo", monospace; color: var(--ink); letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+  .timer-stage .done-emoji { position: absolute; inset: 0; display: grid; place-items: center; font-size: 44px; opacity: 0; transform: scale(0.4); transform-origin: center; }
+  .skip { display: inline-block; margin-top: 14px; font-size: 12.5px; color: var(--ink-mute); }
+
+  .hero { min-height: 100vh; padding-top: 80px; display: flex; align-items: center; }
+
+  .hero-split {
+    display: grid;
+    grid-template-columns: 2fr 3fr;
+    gap: 48px;
+    align-items: center;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .hero-video-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+  }
+  .hero-video-col .video-player {
+    width: 100%;
+    max-width: 340px;
+    position: relative;
+  }
+  .video-mute-btn {
+    position: absolute; top: 12px; right: 12px; z-index: 10;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.18);
+    display: grid; place-items: center;
+    color: white; transition: background 0.15s ease, transform 0.15s ease;
+  }
+  .video-mute-btn:hover { background: rgba(0,0,0,0.65); transform: scale(1.08); }
+  .video-mute-btn svg { width: 16px; height: 16px; }
+  @media (max-width: 880px) {
+    .hero-split { grid-template-columns: 1fr; }
+    .hero-content { align-items: center; text-align: center; }
+    .hero-video-col { display: none; }
+  }
+  .hero .hero-logo { display: flex; align-items: center; gap: 14px; margin-bottom: 36px; opacity: 0; }
+  .hero .hero-logo-mark { width: 64px; height: 64px; border-radius: 16px; background: linear-gradient(180deg, var(--accent), var(--accent-deep)); display: grid; place-items: center; box-shadow: 0 30px 60px -10px rgba(0,113,227,0.40), 0 10px 24px -8px rgba(0,113,227,0.28); }
+  .hero .hero-logo-mark::before, .hero .hero-logo-mark::after { content: ""; width: 8px; height: 30px; background: white; border-radius: 4px; display:inline-block; margin: 0 2.5px; }
+  .hero .hero-logo-word { font: 600 40px/1 -apple-system, "SF Pro Display", "SF Pro Rounded", sans-serif; letter-spacing: -0.02em; color: var(--ink); }
+  .hero .eyebrow { font-size: 16px; color: var(--accent); font-weight: 500; letter-spacing: 0.02em; margin-bottom: 4px; opacity: 0; }
+  .hero-icon { width: 240px; height: auto; mix-blend-mode: multiply; margin: 8px 0 20px; filter: drop-shadow(0 20px 40px rgba(80,130,220,0.16)); }
+  @media (max-width: 720px) { .hero-icon { width: 180px; } }
+  .hero h1 { max-width: 860px; opacity: 0; font-size: clamp(32px, 6.5vw, 68px); }
+  .hero .sub { max-width: min(580px, 90vw); margin: 22px 0 36px; font-size: clamp(16px, 2.2vw, 22px); color: var(--ink-soft); opacity: 0; font-weight: 400; }
+  @media (max-width: 880px) { .hero .sub { margin: 22px auto 36px; } }
+  .hero .cta-wrap { opacity: 0; }
+  .hero .hero-card-wrap { margin-top: 64px; opacity: 0; transform: translateY(12px); }
+  .hero .meta { margin-top: 22px; font-size: 16px; color: var(--ink-mute); opacity: 0; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+  .hero-card-wrap.idle .app-window { animation: float 6s ease-in-out infinite; }
+
+  .cost { background: var(--bg); position: relative; overflow: hidden; padding-left: 88px; padding-right: 88px; min-height: 100vh; display: flex; align-items: center; }
+  .cost .container.split { position: relative; z-index: 1; display: block; }
+  .cost .text-col { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translateX(-160px); opacity: 0; z-index: 2; max-width: 640px; text-align: left; width: min(640px, 70vw); }
+  .cost .notif-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
+  @media (max-width: 880px) {
+    .cost { padding-left: 32px; padding-right: 32px; min-height: 100vh; }
+    .cost .container.split { min-height: 52vh; }
+    .cost .notif-layer { position: absolute; inset: 0; pointer-events: none; z-index: 3; display: flex; align-items: center; justify-content: center; padding: 0 24px; }
+  }
+  .cost .anchor { position: relative; min-height: 360px; }
+  .notif-stack { position: absolute; top: 50%; right: 6%; transform: translateY(-50%); width: min(560px, 46vw); display: flex; flex-direction: column; gap: 20px; pointer-events: none; margin-right: 5em; }
+  @media (max-width: 880px) { .notif-stack { position: relative; inset: auto; width: 100%; max-width: 420px; margin: 0; transform: none; } }
+  .notif { background: rgba(255,255,255,0.72); backdrop-filter: saturate(180%) blur(36px); -webkit-backdrop-filter: saturate(180%) blur(36px); border: 1px solid rgba(255,255,255,0.7); border-radius: 24px; box-shadow: 0 80px 120px -30px rgba(20,20,40,0.28), 0 40px 60px -30px rgba(20,20,40,0.18), 0 12px 24px -10px rgba(20,20,40,0.10); padding: 24px 26px; display: grid; grid-template-columns: 72px 1fr auto; column-gap: 18px; align-items: center; transform: translateX(560px) scale(0.96); opacity: 0; }
+  .notif .icon { width: 72px; height: 72px; border-radius: 17px; background: linear-gradient(180deg, var(--accent), var(--accent-deep)); display: grid; place-items: center; box-shadow: 0 6px 14px rgba(0,113,227,0.32); }
+  .notif .icon::before, .notif .icon::after { content: ""; width: 7px; height: 28px; background: white; border-radius: 3.5px; display:inline-block; margin: 0 2.5px; }
+  .notif .text { min-width: 0; }
+  .notif .title { font-size: 20px; font-weight: 600; color: var(--ink); margin: 0 0 4px; letter-spacing: -0.01em; }
+  .notif .body { font-size: 19px; color: #555568; margin: 0; line-height: 1.4; }
+  .notif .time { font-size: 15px; color: #9a9aab; align-self: start; }
+
+  .wheel-section { background: var(--bg); overflow: hidden; min-height: 100vh; padding-top: 160px; padding-bottom: 160px; position: relative; }
+  .wheel-section .container.split { align-items: center; position: relative; z-index: 3; }
+  .wheel-col { display: flex; align-items: center; justify-content: center; min-height: 460px; }
+  .wheel-section .wheel-host {
+    width: 420px; height: 420px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; overflow: visible;
+    transition: opacity 0.9s ease;
+  }
+  .wheel-section .wheel-host.is-visible { opacity: 1; }
+  .wheel-section .wheel-host .wheel-stage { width: 420px; height: 420px; transform-origin: center; flex-shrink: 0; }
+  .wheel-section .wheel-host .wheel { box-shadow: inset 0 0 0 9px rgba(255,255,255,0.65), 0 35px 88px -18px rgba(20,60,160,0.25); }
+  .wheel-section .wheel-host .wheel-shadow { filter: blur(14px); }
+  .wheel-section .wheel-host .wheel-center { width: 112px; height: 112px; }
+  .wheel-section .wheel-host .wheel-center svg { width: 38px; height: 38px; }
+  .wheel-section .wheel-host .wheel-pointer { top: -25px; width: 28px; height: 25px; }
+  .wheel-section .wheel-host .wheel-pointer::before { border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 25px solid var(--accent); }
+  .wheel-section .wheel-host .wheel-emoji span { font-size: 40px; }
+  .wheel-section .wheel-text-intro h2 { color: #0d0d1a; }
+  .wheel-section .wheel-text-intro p { color: #2a2a40; }
+
+  .wheel-text-intro { opacity: 0; transform: translateY(20px); transition: opacity 0.8s ease, transform 0.8s ease; }
+  .wheel-text-intro.is-shown { opacity: 1; transform: translateY(0); }
+
+  .cat-description { margin-top: 28px; margin-bottom: 8px; padding: 20px 22px; border-radius: 18px; position: relative;
+    background: rgba(255,255,255,0.52);
+    backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.55);
+    box-shadow: 0 8px 32px -4px rgba(20,20,40,0.10), 0 2px 8px rgba(20,20,40,0.06), inset 0 1px 0 rgba(255,255,255,0.75);
+    max-width: 420px; overflow: hidden; max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+  }
+  .cat-description::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(160deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 55%); pointer-events: none; }
+  .cat-description::after  { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(160deg, var(--desc-color, transparent) 0%, transparent 60%); opacity: 0.22; pointer-events: none; transition: background 0.3s ease; }
+  .cat-description.is-open { max-height: 200px; padding-top: 20px; padding-bottom: 20px; opacity: 1; }
+  .cat-desc-head, .cat-desc-body { position: relative; z-index: 1; }
+  .cat-desc-head { display: flex; align-items: center; gap: 10px; font: 600 20px/1 -apple-system, "SF Pro Rounded", "SF Pro Display", sans-serif; color: var(--ink); letter-spacing: -0.01em; }
+  .cat-desc-emoji { font-size: 24px; line-height: 1; }
+  .cat-desc-body { margin-top: 10px; font-size: 16px; line-height: 1.55; color: var(--ink-soft); }
+
+  /* ---- BREAK SECTION ---- */
+  .break-scroll { position: relative; background: var(--bg); margin: 0; padding: 0; }
+  /* Removed position: sticky; now the pin handles the sticky behavior */
+  .break-sticky {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    z-index: 1;
+    background: linear-gradient(160deg, #f5f5f7 0%, #eef4ff 55%, #f2eeff 100%);
+  }
+  .break-text-stage { position: absolute; inset: 0; pointer-events: none; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .break-text-line {
+    font-family: -apple-system, "SF Pro Display", "SF Pro Rounded", "Helvetica Neue", sans-serif;
+    font-weight: 600; letter-spacing: -0.03em; color: var(--ink);
+    line-height: 1.05; white-space: nowrap; will-change: transform;
+    font-size: clamp(52px, 11vw, 148px); position: relative; z-index: 4;
+  }
+  @media (max-width: 720px) { .break-text-line { font-size: clamp(38px, 14vw, 72px); } }
+  .break-desc {
+    position: absolute; left: 50%; top: 25%; transform: translate(-50%, 0);
+    text-align: center; width: min(480px, 82vw); font-size: clamp(16px, 2.2vw, 22px);
+    color: var(--ink-soft); line-height: 1.5; z-index: 4; pointer-events: none; will-change: opacity; margin-top: 12px;
+  }
+  @media (max-width: 720px) { .break-desc { top: 25%; bottom: auto; font-size: clamp(14px, 4vw, 17px); width: min(380px, 88vw); } }
+  .break-app-wrap {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: clamp(280px, 33vw, 420px); z-index: 3; will-change: transform, opacity;
+  }
+  .break-app-wrap .app-window { width: 100%; }
+  @media (max-width: 720px) { .break-app-wrap { width: clamp(240px, 78vw, 340px); } }
+
+  .great-job-text {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    font-family: -apple-system, "SF Pro Display", "SF Pro Rounded", "Helvetica Neue", sans-serif;
+    font-weight: 600; letter-spacing: -0.03em; color: var(--ink);
+    font-size: clamp(52px, 11vw, 148px); line-height: 1.05;
+    white-space: nowrap; pointer-events: none; z-index: 6; opacity: 0;
+  }
+
+  /* ---- VIDEO OVERLAY inside break-sticky ---- */
+  .video-overlay {
+    position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    background: linear-gradient(145deg, rgba(230, 243, 255, 0.92) 0%, rgba(240, 230, 255, 0.90) 100%);
+  }
+  .video-overlay .split {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 60px; align-items: center;
+    max-width: 1120px; width: 100%; padding: 0 32px;
+  }
+  @media (max-width: 880px) {
+    .video-overlay .split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+  }
+  .video-visual {
+    justify-self: center;
+    width: 100%;
+    max-width: 340px;
+    opacity: 0;
+    transform: translateX(-80px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .video-visual.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .video-player {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow:
+      0 50px 80px -30px rgba(20,20,40,0.22),
+      0 20px 40px -20px rgba(20,20,40,0.12),
+      0 8px 18px -8px rgba(20,20,40,0.08);
+    background: #1a1a2e;
+    position: relative;
+  }
+  .video-player video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .video-unmute {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, transform 0.15s;
+    z-index: 2;
+  }
+  .video-unmute:hover {
+    background: rgba(0,0,0,0.65);
+    transform: scale(1.08);
+  }
+  .video-unmute svg { width: 18px; height: 18px; display: block; }
+  .video-unmute .icon-unmuted { display: none; }
+  .video-unmute.is-unmuted .icon-muted { display: none; }
+  .video-unmute.is-unmuted .icon-unmuted { display: block; }
+  .video-player iframe {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    display: block;
+    pointer-events: none;
+  }
+  .video-placeholder {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.5); font-size: 15px;
+    letter-spacing: 0.02em; pointer-events: none;
+    background: linear-gradient(160deg, #1e1e32, #0f0f1e);
+  }
+  .video-text {
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+  }
+  .video-text.is-visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .video-text h2 {
+    font-size: clamp(24px, 5.5vw, 80px);
+    margin-bottom: 20px;
+  }
+  .video-text p {
+    font-size: clamp(17px, 2vw, 22px);
+    max-width: 440px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  @media (max-width: 880px) {
+    .video-visual { max-width: 260px; transform: translateX(-40px); }
+    .video-text { transform: translateX(40px); }
+    .video-text p { max-width: 100%; }
+  }
+
+  /* ---- CONVERT SECTION ---- */
+  .convert {
+    background: var(--bg); position: relative; z-index: 5; min-height: 40vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 10em 32px;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+  }
+  .convert h2 {
+    font-size: clamp(30px, 7vw, 96px); max-width: 880px; margin: 0 auto 44px;
+    font-family: -apple-system, "SF Pro Display", "SF Pro Rounded", "Helvetica Neue", sans-serif;
+    font-weight: 600; letter-spacing: -0.025em; color: var(--ink); line-height: 1.05; text-wrap: balance;
+  }
+  .convert .submeta { margin-top: 18px; color: var(--ink-mute); font-size: 16px; }
+
+  .break-section { display: none; }
+
+  footer {
+    padding: 40px 32px 60px; text-align: center; color: var(--ink-mute);
+    font-size: 15px; border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  footer .row { display: flex; justify-content: center; gap: 22px; margin-bottom: 10px; }
+  footer a { color: inherit; text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-card-wrap.idle .app-window { animation: none; }
+    * { transition: none !important; animation: none !important; }
+  }
+
+  /* ============================================================
+     RESPONSIVE — XS / SMALL MOBILE (≤ 600px, ≤ 480px, ≤ 400px)
+     ============================================================ */
+
+  /* --- Section padding --- */
+  @media (max-width: 480px) {
+    .section { padding: 60px 20px; }
+  }
+
+  /* --- Navigation --- */
+  @media (max-width: 480px) {
+    .nav { padding: 0 16px; }
+    .nav .brand { font-size: 13px; }
+    .nav .brand-mark { width: 18px; height: 18px; }
+  }
+
+  /* --- CTA button --- */
+  @media (max-width: 600px) {
+    .cta { font-size: 17px; padding: 18px 30px; }
+  }
+  @media (max-width: 400px) {
+    .cta { font-size: 15px; padding: 15px 22px; }
+  }
+
+  /* --- Hero section --- */
+  @media (max-width: 600px) {
+    .hero .hero-logo-mark { width: 52px; height: 52px; border-radius: 13px; }
+    .hero .hero-logo-mark::before,
+    .hero .hero-logo-mark::after { width: 7px; height: 25px; border-radius: 3.5px; margin: 0 2px; }
+    .hero .hero-logo-word { font-size: 32px; }
+    .hero .eyebrow { font-size: 14px; }
+  }
+  @media (max-width: 480px) {
+    .hero { padding-top: 60px; }
+    .hero .hero-logo-mark { width: 44px; height: 44px; border-radius: 11px; }
+    .hero .hero-logo-mark::before,
+    .hero .hero-logo-mark::after { width: 6px; height: 21px; border-radius: 3px; margin: 0 1.5px; }
+    .hero .hero-logo-word { font-size: 26px; }
+    .hero .eyebrow { font-size: 13px; }
+    .hero .meta { font-size: 13px; }
+    .hero .sub { margin: 14px auto 24px; }
+    .hero .hero-card-wrap { margin-top: 40px; }
+    .hero-icon { width: 150px; }
+  }
+
+  /* --- Cost section — notification cards --- */
+  @media (max-width: 880px) {
+    .notif {
+      grid-template-columns: 52px 1fr auto;
+      column-gap: 14px;
+      padding: 18px 20px;
+      border-radius: 20px;
+      box-shadow: 0 40px 70px -20px rgba(20,20,40,0.22), 0 16px 32px -16px rgba(20,20,40,0.14);
+    }
+    .notif .icon { width: 52px; height: 52px; border-radius: 13px; }
+    .notif .icon::before, .notif .icon::after { width: 5px; height: 20px; }
+    .notif-icon-img { width: 52px !important; height: 52px !important; border-radius: 13px !important; }
+    .notif .title { font-size: 16px; }
+    .notif .body { font-size: 14px; }
+    .notif .time { font-size: 12px; }
+  }
+  @media (max-width: 600px) {
+    .notif {
+      grid-template-columns: 44px 1fr;
+      column-gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+    }
+    .notif .icon { width: 44px; height: 44px; border-radius: 11px; }
+    .notif .icon::before, .notif .icon::after { width: 4px; height: 16px; }
+    .notif-icon-img { width: 44px !important; height: 44px !important; border-radius: 11px !important; }
+    .notif .title { font-size: 14px; }
+    .notif .body { font-size: 13px; line-height: 1.35; }
+    .notif .time { display: none; }
+  }
+  @media (max-width: 480px) {
+    .notif-stack { gap: 12px; }
+    .notif { padding: 12px 14px; border-radius: 14px; }
+    .notif .icon { width: 38px; height: 38px; border-radius: 9px; }
+    .notif .icon::before, .notif .icon::after { width: 3.5px; height: 13px; }
+    .notif-icon-img { width: 38px !important; height: 38px !important; border-radius: 9px !important; }
+    .notif .title { font-size: 13px; }
+    .notif .body { font-size: 12px; }
+    .cost .text-col p { font-size: 15px; }
+  }
+
+  /* --- Wheel section --- */
+  @media (max-width: 480px) {
+    .wheel-section { padding-top: 80px; padding-bottom: 80px; }
+    .cat-description { max-width: 100%; }
+    .cat-desc-head { font-size: 17px; }
+    .cat-desc-body { font-size: 14px; }
+  }
+
+  /* --- Break section --- */
+  @media (max-width: 480px) {
+    .break-app-wrap { width: clamp(220px, 82vw, 300px); }
+    .break-desc { width: min(320px, 88vw); }
+  }
+
+  /* --- Video overlay --- */
+  @media (max-width: 600px) {
+    .video-overlay .split { padding: 0 20px; gap: 28px; }
+    .video-visual { max-width: 220px; }
+    .video-text p { font-size: 15px; max-width: 100%; }
+  }
+  @media (max-width: 480px) {
+    .video-overlay .split { padding: 0 16px; gap: 18px; }
+    .video-visual { max-width: 170px; }
+    .video-text p { font-size: 14px; }
+  }
+
+  /* --- Convert section --- */
+  @media (max-width: 600px) {
+    .convert { padding: 60px 24px; }
+    .convert .submeta { font-size: 14px; }
+  }
+  @media (max-width: 480px) {
+    .convert { padding: 48px 20px; }
+    .convert .submeta { font-size: 13px; }
+  }
+
+  /* --- Footer --- */
+  @media (max-width: 480px) {
+    footer { padding: 28px 20px 40px; font-size: 13px; }
+    footer .row { gap: 14px; flex-wrap: wrap; justify-content: center; }
+  }
+
+  /* --- Mobile wheel: full screen width --- */
+  @media (max-width: 880px) {
+    .wheel-section { padding-top: 60px; padding-bottom: 40px; }
+    .wheel-col {
+      min-height: 0;
+      width: calc(100vw - 2em);
+      height: calc(100vw - 2em);
+      margin: 0 auto;
+    }
+    .wheel-section .wheel-host {
+      width: 100%; height: 100%;
+      --ms: min(calc(100vw - 2rem), 400px);
+    }
+    .wheel-section .wheel-host .wheel-stage {
+      width: var(--ms) !important;
+      height: var(--ms) !important;
+      transform: none !important;
+    }
+    .wheel-section .wheel-host .wheel-shadow { filter: blur(calc(var(--ms) * 0.033)) !important; }
+    .wheel-section .wheel-host .wheel { box-shadow: inset 0 0 0 calc(var(--ms) * 0.025) rgba(255,255,255,0.65), 0 20px 50px -10px rgba(20,60,160,0.25) !important; }
+    .wheel-section .wheel-host .wheel-center { width: calc(var(--ms) * 0.267) !important; height: calc(var(--ms) * 0.267) !important; }
+    .wheel-section .wheel-host .wheel-center svg { width: calc(var(--ms) * 0.092) !important; height: calc(var(--ms) * 0.092) !important; }
+    .wheel-section .wheel-host .wheel-pointer { top: calc(var(--ms) * -0.0583) !important; width: calc(var(--ms) * 0.0667) !important; height: calc(var(--ms) * 0.0583) !important; }
+    .wheel-section .wheel-host .wheel-pointer::before { border-left: calc(var(--ms) * 0.0333) solid transparent !important; border-right: calc(var(--ms) * 0.0333) solid transparent !important; border-top: calc(var(--ms) * 0.0583) solid var(--accent) !important; }
+    .wheel-section .wheel-host .wheel-emoji span { font-size: calc(var(--ms) * 0.11) !important; }
+  }
+</style>
+</head>
+<body>
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<div class="ambient" aria-hidden="true"></div>
+
+<!-- =====================================================
+     SECTION 1 — HERO
+     ===================================================== -->
+<section class="section hero gradient-bg" id="hero">
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <div class="hero-split">
+    <div class="hero-video-col" data-hero="video">
+      <div class="video-player">
+        <video src="short-movie.mp4" autoplay muted loop playsinline></video>
+        <button class="video-unmute" aria-label="Unmute video">
+          <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g class="icon-muted">
+              <path d="M3 7.5h3l4-3v11l-4-3H3v-5z" fill="white"/>
+              <line x1="13" y1="7" x2="17" y2="13" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+              <line x1="17" y1="7" x2="13" y2="13" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+            </g>
+            <g class="icon-unmuted">
+              <path d="M3 7.5h3l4-3v11l-4-3H3v-5z" fill="white"/>
+              <path d="M13.5 7c1.2 0.9 2 2.2 2 3.5s-0.8 2.6-2 3.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M15.5 4.5c2 1.4 3.3 3.4 3.3 5.5s-1.3 4.1-3.3 5.5" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-logo" data-hero="logo" aria-label="Pausa">
+        <img src="AppIcon.svg" alt="" aria-hidden="true" class="hero-logo-img" width="64" height="64" style="border-radius:16px;display:block;box-shadow:0 30px 60px -10px rgba(0,113,227,0.40),0 10px 24px -8px rgba(0,113,227,0.28);">
+        <span class="hero-logo-word">Pausa</span>
+      </div>
+      <div class="eyebrow" data-hero="eyebrow">For macOS · Free</div>
+      <h1 data-hero="headline">Rest makes you better.</h1>
+      <h2 class="sub" data-hero="sub">Pausa sits in your menubar and nudges you to step away for a few minutes. Just enough to return sharper.</h2>
+      <div class="cta-wrap" data-hero="cta">
+        <a class="cta" href="#download">Download free for Mac
+          <svg class="icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 2v8M5 7l3 3 3-3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 13h10" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </a>
+      </div>
+      <div class="meta" data-hero="meta">macOS 14+ · 4.2 MB · No account</div>
+      <div class="meta" data-hero="meta" style="margin-top:6px;">Available in English, Italiano, Français &amp; 中文</div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     SECTION 2 — THE COST
+     ===================================================== -->
+<section class="section cost" id="cost">
+  <div class="container split">
+    <div class="text-col">
+      <h1>You need a break.</h1>
+      <p style="margin-top:24px; max-width:480px;">Pausa notices when you've been working too long. A quiet reminder appears — not to nag, but because two minutes now saves you an hour of tired thinking later.</p>
+    </div>
+    <div></div>
+  </div>
+  <div class="notif-layer" id="notifAnchor">
+    <div class="notif-stack" aria-hidden="true">
+        <div class="notif" data-notif="1">
+          <img src="AppIcon.svg" alt="" aria-hidden="true" class="notif-icon-img" width="72" height="72" style="border-radius:17px;display:block;box-shadow:0 6px 14px rgba(0,113,227,0.32);">
+          <div class="text"><p class="title">Eyes open for a while</p><p class="body">Time to look away. Find something far. Let them rest.</p></div>
+          <div class="time">now</div>
+        </div>
+        <div class="notif" data-notif="2">
+          <img src="AppIcon.svg" alt="" aria-hidden="true" class="notif-icon-img" width="72" height="72" style="border-radius:17px;display:block;box-shadow:0 6px 14px rgba(0,113,227,0.32);">
+          <div class="text"><p class="title">Still sitting</p><p class="body">Move. Stretch. Get up. The wheel has something that isn't a chair.</p></div>
+          <div class="time">now</div>
+        </div>
+        <div class="notif" data-notif="3">
+          <img src="AppIcon.svg" alt="" aria-hidden="true" class="notif-icon-img" width="72" height="72" style="border-radius:17px;display:block;box-shadow:0 6px 14px rgba(0,113,227,0.32);">
+          <div class="text"><p class="title">Late nights need care</p><p class="body">Late work is okay. Late work without breaks wears you down.</p></div>
+          <div class="time">now</div>
+        </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     SECTION 3 — THE WHEEL
+     ===================================================== -->
+<section class="section wheel-section" id="wheel">
+  <div class="bg-gradient" aria-hidden="true"></div>
+  <div class="container split">
+    <div class="wheel-text-col">
+      <div class="wheel-text-intro" id="wheelTextIntro">
+        <h2>Eight kinds of breaks.</h2>
+        <p style="margin-top:24px; max-width:480px;">Some move you. Some make you think. Some let you breathe. Pausa spins the wheel — you just do it.</p>
+      </div>
+      <div class="cat-description" id="catDescription" aria-live="polite">
+        <div class="cat-desc-head">
+          <span class="cat-desc-emoji" id="catDescEmoji">🧠</span>
+          <span id="catDescName">Curiosity</span>
+        </div>
+        <div class="cat-desc-body" id="catDescBody">A fact. A question. Something unexpected. A small moment to pause and think.</div>
+      </div>
+    </div>
+    <div class="wheel-col">
+      <div class="wheel-host" id="wheelHost">
+        <div class="wheel-stage" data-wheel="big">
+          <div class="wheel-shadow"></div>
+          <div class="wheel" data-wheel-rot></div>
+          <div class="wheel-dividers" data-wheel-rot></div>
+          <div class="wheel-emoji" data-wheel-rot></div>
+          <div class="wheel-center">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M3 12a9 9 0 0 1 15.5-6.3M21 12a9 9 0 0 1-15.5 6.3" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <path d="M19 3v4h-4M5 21v-4h4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="wheel-pointer" aria-hidden="true"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     SECTION 4 — THE BREAK (with video overlay)
+     ===================================================== -->
+<section class="break-scroll" id="break">
+  <div class="break-sticky" id="breakSticky">
+    <div class="bg-gradient" id="breakBg" aria-hidden="true"></div>
+    <!-- Break content -->
+    <div class="break-text-stage" id="breakTextStage">
+      <span class="break-text-line" id="breakTextLeft">15 seconds.</span>
+      <span class="break-text-line" id="breakTextRight">that's all.</span>
+    </div>
+    <p class="break-desc" id="breakDesc">Some are movement. Some are facts about octopuses. All of them work.</p>
+    <div class="break-app-wrap" id="breakAppWrap">
+      <div class="app-window" id="breakWindow">
+        <div class="aw-top">
+          <span></span>
+          <span class="aw-title"><span class="pause-glyph" aria-hidden="true"></span>Pausa</span>
+          <span class="aw-settings" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94a7.43 7.43 0 0 0 .06-.94 7.43 7.43 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.27 7.27 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.9 2h-3.8a.5.5 0 0 0-.5.42l-.36 2.54a7.27 7.27 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.48a.5.5 0 0 0 .12.64l2.03 1.58a7.65 7.65 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.38 1.04.7 1.62.94l.36 2.54a.5.5 0 0 0 .5.42h3.8a.5.5 0 0 0 .5-.42l.36-2.54a7.27 7.27 0 0 0 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 15.6 12 3.6 3.6 0 0 1 12 15.6z"/></svg>
+          </span>
+        </div>
+        <div class="activity">
+          <div class="top-row"><span class="aw-reset-pill"><span class="ico">🧘</span>Reset</span></div>
+          <div class="emoji" aria-hidden="true">🧘‍♀️</div>
+          <div class="a-title">Belly breathing</div>
+          <div class="a-body">One hand on your belly. Feel it rise and fall. That's it.</div>
+          <div class="timer-stage" id="timerStageEl">
+            <svg viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="track" cx="60" cy="60" r="52"></circle>
+              <circle class="arc" id="timerArc" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="time" id="timerText">00:15</div>
+            <div class="done-emoji" id="doneEmoji">🌿</div>
+          </div>
+          <a href="#" class="skip" onclick="event.preventDefault()">Skip</a>
+        </div>
+      </div>
+    </div>
+    <div class="great-job-text" id="greatJobText" aria-hidden="true">Great job!</div>
+
+  </div>
+</section>
+
+<!-- =====================================================
+     SECTION 5 — CONVERT
+     ===================================================== -->
+<section class="convert" id="download">
+  <div class="container" style="text-align:center;">
+    <h2>Stop working. Start here.</h2>
+    <div class="cta-wrap" style="margin-top:28px;">
+      <a class="cta" href="#" onclick="event.preventDefault()">Download free for Mac
+        <svg class="arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+    <div class="submeta">macOS 14+ · No subscription · No account.</div>
+  </div>
+</section>
+
+<footer>
+  <div>© <span id="footer-year"></span> Pausa. Made for people who work on screens.</div>
+</footer>
+
+<script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
+
+<!-- ============ GSAP ============ -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+
+<script>
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ---------- Wheel construction ----------
+  const slices = [
+    { name: 'Curiosity',   emoji: '🧠', color: 'var(--c-curiosity)',   desc: 'A fact. A question. Something that makes you pause.' },
+    { name: 'Guess',       emoji: '🎯', color: 'var(--c-guess)',       desc: 'Guess. Your brain wakes up. Right or wrong, you won.' },
+    { name: 'Eyes',        emoji: '👀', color: 'var(--c-eyes)',        desc: 'Look away. Out a window. At something far. Give your eyes a rest.' },
+    { name: 'Reset',       emoji: '🧘', color: 'var(--c-reset)',       desc: 'Breathe in. Slow out. Fifteen seconds to reset your whole system.' },
+    { name: 'Move',        emoji: '🤸', color: 'var(--c-move)',        desc: 'Get up. Thirty seconds of movement. Lunges, hops, whatever feels good.' },
+    { name: 'Recharge',    emoji: '💧', color: 'var(--c-recharge)',    desc: 'Water. Tea. The basic thing you forgot about. Drink it slow.' },
+    { name: 'Perspective', emoji: '🌍', color: 'var(--c-perspective)', desc: 'Zoom out. This tab, this task — it\'s smaller than it feels.' },
+    { name: 'Challenges',  emoji: '🎲', color: 'var(--c-challenges)',  desc: 'A tiny task. Find it. Do it. Your mind shifts just by trying.' },
+  ];
+
+  function buildWheelEmojis() {
+    document.querySelectorAll('.wheel-emoji').forEach(host => {
+      host.innerHTML = '';
+      const r = host.parentElement.offsetWidth * 0.34;
+      slices.forEach((s, i) => {
+        const angle = (i * 45) * Math.PI / 180;
+        const x = Math.sin(angle) * r;
+        const y = -Math.cos(angle) * r;
+        const el = document.createElement('span');
+        el.textContent = s.emoji;
+        el.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${i * 45}deg)`;
+        host.appendChild(el);
+      });
+    });
+  }
+  buildWheelEmojis();
+  window.addEventListener('resize', buildWheelEmojis);
+
+  document.querySelectorAll('.wheel-dividers').forEach(host => {
+    for (let i = 0; i < 8; i++) {
+      const span = document.createElement('span');
+      const deg = -90 + i * 45 + 22.5;
+      span.style.transform = `rotate(${deg}deg)`;
+      host.appendChild(span);
+    }
+  });
+
+  // ---------- Section 1: hero reveal ----------
+  gsap.set('[data-hero="icon"]', { opacity: 0, y: 18 });
+  const heroTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+  heroTl
+    .to('[data-hero="logo"]',     { opacity: 1, duration: 0.6 })
+    .to('[data-hero="eyebrow"]',  { opacity: 1, duration: 0.5 }, '-=0.2')
+    .to('[data-hero="icon"]',     { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, '-=0.2')
+    .to('[data-hero="headline"]', { opacity: 1, duration: 0.5 }, '-=0.4')
+    .to('[data-hero="sub"]',      { opacity: 0.7, duration: 0.5 }, '-=0.3')
+    .to('[data-hero="cta"]',      { opacity: 1, duration: 0.5 }, '-=0.3')
+    .to('[data-hero="meta"]',     { opacity: 1, duration: 0.5 }, '-=0.3')
+    .to('[data-hero="video"]',    { opacity: 1, duration: 0.9, ease: 'power2.out' }, '-=0.5')
+    .add(() => {
+      gsap.to('[data-hero="icon"]', { y: -6, duration: 3, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+    });
+
+  // ---------- Section 2: notification banners ----------
+  const notif1 = document.querySelector('[data-notif="1"]');
+  const notif2 = document.querySelector('[data-notif="2"]');
+  const notif3 = document.querySelector('[data-notif="3"]');
+  const costTextCol = document.querySelector('#cost .text-col');
+
+  ScrollTrigger.create({
+    trigger: '#cost',
+    start: 'top top',
+    end: '+=140%',
+    pin: true,
+    pinSpacing: true,
+    scrub: 0.6,
+    onUpdate: (self) => {
+      const p = self.progress;
+      const tt = gsap.utils.clamp(0, 1, p / 0.18);
+      const tEased = 1 - Math.pow(1 - tt, 3);
+      costTextCol.style.transform = `translate(-50%, -50%) translateX(${(1 - tEased) * -160}px)`;
+      costTextCol.style.opacity = tEased;
+
+      const stages = [
+        { el: notif1, in: 0.22, out: 0.45 },
+        { el: notif2, in: 0.45, out: 0.68 },
+        { el: notif3, in: 0.68, out: 0.90 },
+      ];
+      stages.forEach(({ el, in: a, out: b }) => {
+        const t = gsap.utils.clamp(0, 1, (p - a) / (b - a));
+        const eased = 1 - Math.pow(1 - t, 3);
+        el.style.transform = `translateX(${(1 - eased) * 560}px) scale(${0.96 + eased * 0.04})`;
+        el.style.opacity = eased;
+      });
+    }
+  });
+
+  // ---------- Gradient bg overlays ----------
+  const heroBg  = document.querySelector('#hero .bg-gradient');
+  const wheelBg = document.querySelector('#wheel .bg-gradient');
+
+  if (heroBg) heroBg.style.opacity = 1;
+  if (wheelBg) wheelBg.style.opacity = 1;
+
+  // ---------- Section 3: wheel (anticlockwise scrub, description only) ----------
+  const wheelRotEls   = document.querySelectorAll('.wheel-section [data-wheel-rot]');
+  const catDescription = document.getElementById('catDescription');
+  const catDescName   = document.getElementById('catDescName');
+  const catDescBody   = document.getElementById('catDescBody');
+  const catDescEmoji  = document.getElementById('catDescEmoji');
+  const sliceByName   = Object.fromEntries(slices.map(s => [s.name, s]));
+  let currentCatName  = null;
+
+  const sliceColors = {
+    Curiosity:   '#A5CAFF',
+    Guess:       '#FFB3BA',
+    Eyes:        '#96E3A0',
+    Reset:       '#FFCBA0',
+    Move:        '#8ED9F5',
+    Recharge:    '#C9A5FF',
+    Perspective: '#BCC0D4',
+    Challenges:  '#8FD9BB',
+  };
+  function hexToRgb(hex) {
+    return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
+  }
+  function lerpColor(a, b, t) {
+    const [r1,g1,b1] = hexToRgb(a), [r2,g2,b2] = hexToRgb(b);
+    return `rgba(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)},0.76)`;
+  }
+
+  function setActiveCategory(name) {
+    if (name === currentCatName) return;
+    currentCatName = name;
+    const info = sliceByName[name];
+    if (!info) return;
+    catDescName.textContent = name;
+    catDescBody.textContent = info.desc;
+    catDescription.style.setProperty('--desc-color', info.color);
+    catDescEmoji.textContent = info.emoji;
+  }
+
+  setActiveCategory('Curiosity');
+  currentCatName = null;
+
+  let scrubDeg = 0;
+
+  ScrollTrigger.create({
+    trigger: '#wheelTextIntro',
+    start: 'top 85%',
+    onEnter: () => document.getElementById('wheelTextIntro').classList.add('is-shown'),
+    onLeaveBack: () => document.getElementById('wheelTextIntro').classList.remove('is-shown'),
+  });
+
+  ScrollTrigger.create({
+    trigger: '#wheelHost',
+    start: 'top 85%',
+    onEnter: () => {
+      document.getElementById('wheelHost').classList.add('is-visible');
+      setActiveCategory('Curiosity');
+      catDescription.classList.add('is-open');
+    },
+    onLeaveBack: () => {
+      document.getElementById('wheelHost').classList.remove('is-visible');
+    },
+  });
+
+  let wheelFromBelow = false;
+
+  const wheelScrub = ScrollTrigger.create({
+    trigger: '#wheel',
+    start: 'top top',
+    end: '+=140%',
+    pin: true,
+    pinSpacing: true,
+    scrub: 0.4,
+    onEnter: () => {
+      wheelFromBelow = false;
+      if (wheelBg) {
+        wheelBg.style.background = `radial-gradient(circle, rgba(246,200,95,0.76) 0%, rgba(255,255,255,1) 100%)`;
+        gsap.to(wheelBg, { opacity: 1, duration: 0.7, overwrite: true });
+      }
+    },
+    onLeave:     () => {},
+    onEnterBack: () => { wheelFromBelow = true; },
+    onLeaveBack: () => { wheelFromBelow = false; },
+    onUpdate: (self) => {
+      const p = self.progress;
+      const deg = -p * 360;
+      scrubDeg = deg;
+      wheelRotEls.forEach(el => el.style.transform = `rotate(${deg}deg)`);
+      const idx = ((Math.round(-deg / 45)) % 8 + 8) % 8;
+      setActiveCategory(slices[idx].name);
+      catDescription.classList.add('is-open');
+
+      if (wheelBg) {
+        const exactIdx = ((-deg / 45) % 8 + 8) % 8;
+        const fi = Math.floor(exactIdx) % 8;
+        const ni = (fi + 1) % 8;
+        const frac = exactIdx - fi;
+        wheelBg.style.background = `radial-gradient(circle, ${lerpColor(sliceColors[slices[fi].name], sliceColors[slices[ni].name], frac)} 0%, rgba(255,255,255,1) 100%)`;
+
+      }
+    }
+  });
+
+  // ---------- Section 4: break + video overlay (sticky removed, only pin) ----------
+  const breakTextLeft  = document.getElementById('breakTextLeft');
+  const breakTextRight = document.getElementById('breakTextRight');
+  const breakDesc      = document.getElementById('breakDesc');
+  const breakAppWrap   = document.getElementById('breakAppWrap');
+  const breakBg        = document.getElementById('breakBg');
+  const greatJobText   = document.getElementById('greatJobText');
+  const timerArc       = document.getElementById('timerArc');
+  const timerText      = document.getElementById('timerText');
+  const doneEmoji      = document.getElementById('doneEmoji');
+  const timerStageEl   = document.getElementById('timerStageEl');
+  const circ           = 2 * Math.PI * 52;
+
+  timerArc.setAttribute('stroke-dasharray', circ.toFixed(2));
+
+  gsap.set(breakAppWrap, { opacity: 0, scale: 0 });
+
+  let doneShown = false;
+
+  const TEXT_MOVE_START = 0.0;
+  const TEXT_MOVE_END   = 0.3;
+  const TIMER_END       = 0.6;
+  const TRANSITION_END  = 0.95;
+
+  function arcColor(p) {
+    const t = 1 / (1 + Math.exp(-(p - 0.82) * 18));
+    let h;
+    if (t < 0.5) h = 211 + (280 - 211) * (t / 0.5);
+    else         h = 280 + (370 - 280) * ((t - 0.5) / 0.5);
+    if (h >= 360) h -= 360;
+    const l = 50 - 10 * t;
+    const s = 90;
+    return `hsl(${h.toFixed(1)} ${s}% ${l.toFixed(1)}%)`;
+  }
+
+  ScrollTrigger.create({
+    trigger: '#break',
+    start: 'top top',
+    end: '+=1400vh',
+    pin: true,
+    pinSpacing: true,
+    scrub: 0.5,
+    onUpdate: (self) => {
+      const p = self.progress;
+      const vw = window.innerWidth;
+      const isMobile = vw <= 720;
+      const offscreenX = isMobile ? vw * 1.5 : vw * 0.8;
+
+      // Break text and app animation
+      const textMoveP = gsap.utils.clamp(0, 1, (p - TEXT_MOVE_START) / (TEXT_MOVE_END - TEXT_MOVE_START));
+      const textEased = Math.sin(textMoveP * Math.PI / 2);
+      breakTextLeft.style.transform  = `translateX(${-textEased * offscreenX}px)`;
+      breakTextRight.style.transform = `translateX(${textEased * offscreenX}px)`;
+      breakDesc.style.opacity = (1 - textEased * 2).toFixed(3);
+
+      const appStart = isMobile ? 0.72 : 0.5;
+      let appZoomP = textMoveP >= appStart ? gsap.utils.clamp(0, 1, (textMoveP - appStart) / (1 - appStart)) : 0;
+      const zoomEased = 1 - Math.pow(1 - appZoomP, 3);
+      breakAppWrap.style.transform = `translate(-50%, -50%) scale(${(zoomEased * 0.96).toFixed(4)})`;
+      breakAppWrap.style.opacity = (zoomEased * 0.98 + 0.02).toFixed(3);
+
+      const timerP = gsap.utils.clamp(0, 1, (p - TEXT_MOVE_END) / (TIMER_END - TEXT_MOVE_END));
+      const remaining = Math.max(0, Math.round(15 * (1 - timerP)));
+      const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+      const ss = String(remaining % 60).padStart(2, '0');
+      timerText.textContent = `${mm}:${ss}`;
+      timerArc.style.strokeDashoffset = (circ * timerP).toFixed(2);
+      timerArc.style.stroke = arcColor(timerP);
+
+      if (timerP > 0.8 && timerP < 0.985) {
+        timerArc.style.opacity = 0.6 + 0.4 * Math.abs(Math.sin(timerP * 30));
+      } else if (timerP < 0.985) {
+        timerArc.style.opacity = 1;
+      }
+
+      if (timerP >= 0.985) {
+        if (!doneShown) doneShown = true;
+        const overshoot = Math.max(0, (timerP - 0.985) / 0.015);
+        const springScale = 0.4 + 0.6 * Math.min(1, overshoot) + 0.3 * Math.max(0, 1 - overshoot) * Math.exp(-(overshoot - 1) * 8);
+        const finalScale = timerP >= 0.999 ? 1 : Math.min(1.35, springScale);
+        doneEmoji.style.opacity = Math.min(1, overshoot * 3);
+        doneEmoji.style.transform = `scale(${finalScale.toFixed(3)})`;
+        timerText.style.opacity = Math.max(0, 1 - overshoot * 5);
+        timerArc.style.opacity = Math.max(0.08, 0.2 + 0.8 * (1 - Math.min(1, overshoot)));
+      } else {
+        if (doneShown) {
+          doneShown = false;
+          doneEmoji.style.opacity = 0;
+          doneEmoji.style.transform = 'scale(0.4)';
+          timerText.style.opacity = 1;
+        }
+      }
+
+      const transitionP = gsap.utils.clamp(0, 1, (p - TIMER_END) / (TRANSITION_END - TIMER_END));
+      const fadeOut = 1 - Math.pow(1 - transitionP, 2);
+      breakAppWrap.style.opacity = (1 - fadeOut).toFixed(3);
+      if (timerStageEl) timerStageEl.style.opacity = (1 - fadeOut).toFixed(3);
+      if (breakBg) breakBg.style.opacity = (zoomEased * (1 - fadeOut)).toFixed(3);
+
+      if (p <= TIMER_END) {
+        breakTextLeft.style.opacity = '1';
+        breakTextRight.style.opacity = '1';
+      } else if (p <= TRANSITION_END) {
+        breakTextLeft.style.opacity = (1 - fadeOut).toFixed(3);
+        breakTextRight.style.opacity = (1 - fadeOut).toFixed(3);
+      } else {
+        breakTextLeft.style.opacity = '0';
+        breakTextRight.style.opacity = '0';
+      }
+
+    }
+  });
+
+
+  // ---------- Convert section entrance ----------
+  gsap.set('#download', { opacity: 0 });
+  ScrollTrigger.create({
+    trigger: '#download',
+    start: 'top bottom',
+    onEnter: () => {
+      document.getElementById('download').style.opacity = '1';
+    },
+    onLeaveBack: () => {
+      document.getElementById('download').style.opacity = '0';
+    }
+  });
+
+  window.addEventListener('load', () => ScrollTrigger.refresh());
+
+  // ---------- Hero video mute toggle ----------
+  (function () {
+    var vid = document.getElementById('heroVideo');
+    var btn = document.getElementById('heroMuteBtn');
+    var icon = document.getElementById('heroMuteIcon');
+    if (!vid || !btn || !icon) return;
+    vid.volume = 0.1;
+
+    var svgUnmuted = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+    var svgMuted   = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+
+    function updateIcon() {
+      icon.innerHTML = vid.muted ? svgMuted : svgUnmuted;
+      btn.setAttribute('aria-label', vid.muted ? 'Unmute video' : 'Mute video');
+    }
+
+    vid.addEventListener('volumechange', updateIcon);
+    updateIcon(); // sync to initial muted state
+
+    btn.addEventListener('click', function () {
+      vid.muted = !vid.muted;
+      if (!vid.muted) {
+        var p = vid.play();
+        if (p && typeof p.catch === 'function') p.catch(function () { vid.muted = true; });
+      }
+    });
+  }());
+
+  // ---------- Mouse tilt on hover ----------
+  (function () {
+    var TILT_MAX = 3;
+    var PERSPECTIVE = 900;
+
+    function applyTilt(el) {
+      el.addEventListener('mousemove', function (e) {
+        var r  = el.getBoundingClientRect();
+        var nx = ((e.clientX - r.left) / r.width  - 0.5) * 2;
+        var ny = ((e.clientY - r.top)  / r.height - 0.5) * 2;
+        el.style.transition = 'transform 0.08s ease-out';
+        el.style.transform  = 'perspective(' + PERSPECTIVE + 'px) rotateX(' + (-ny * TILT_MAX).toFixed(2) + 'deg) rotateY(' + (nx * TILT_MAX).toFixed(2) + 'deg)';
+      });
+
+      el.addEventListener('mouseleave', function () {
+        el.style.transition = 'transform 0.55s cubic-bezier(0.23, 1, 0.32, 1)';
+        el.style.transform  = 'perspective(' + PERSPECTIVE + 'px) rotateX(0deg) rotateY(0deg)';
+      });
+    }
+
+    document.querySelectorAll('.video-player, .notif, .wheel-stage, .cat-description, .app-window').forEach(applyTilt);
+  }());
+
+  // ---------- Custom cursor ----------
+  (function () {
+    var dot  = document.getElementById('cursor-dot');
+    var ring = document.getElementById('cursor-ring');
+    if (!dot || !ring) return;
+
+    var mx = -200, my = -200;
+    var rx = -200, ry = -200;
+    var lastTrail = 0;
+    var lastTX = -999, lastTY = -999;
+
+    // Trail colours cycle through brand pastels
+    var trailColors = ['rgba(0,113,227,0.7)', 'rgba(0,80,204,0.6)', 'rgba(165,202,255,0.65)', 'rgba(0,113,227,0.5)'];
+    var tci = 0;
+
+    document.addEventListener('mousemove', function (e) {
+      mx = e.clientX;
+      my = e.clientY;
+      dot.style.left = mx + 'px';
+      dot.style.top  = my + 'px';
+
+      var now = Date.now();
+      var dx  = mx - lastTX;
+      var dy  = my - lastTY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (now - lastTrail > 12 && dist > 3) {
+        lastTrail = now;
+        lastTX = mx; lastTY = my;
+        var size = 5 + Math.random() * 4;
+        var p = document.createElement('div');
+        p.className = 'cursor-trail';
+        p.style.left   = mx + 'px';
+        p.style.top    = my + 'px';
+        p.style.width  = size + 'px';
+        p.style.height = size + 'px';
+        p.style.background = trailColors[tci % trailColors.length];
+        tci++;
+        document.body.appendChild(p);
+        setTimeout(function () { if (p.parentNode) p.parentNode.removeChild(p); }, 720);
+      }
+    });
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    (function animate() {
+      rx = lerp(rx, mx, 0.1);
+      ry = lerp(ry, my, 0.1);
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animate);
+    }());
+
+    document.addEventListener('mouseover', function (e) {
+      if (e.target.closest('a, button, [role="button"], input, label, select')) {
+        document.body.classList.add('cursor-hover');
+      }
+    });
+    document.addEventListener('mouseout', function (e) {
+      if (e.target.closest('a, button, [role="button"], input, label, select')) {
+        document.body.classList.remove('cursor-hover');
+      }
+    });
+
+    document.addEventListener('mouseleave', function () {
+      dot.style.opacity = '0';
+      ring.style.opacity = '0';
+    });
+    document.addEventListener('mouseenter', function () {
+      dot.style.opacity = '1';
+      ring.style.opacity = '';
+    });
+  }());
+
+  // Video unmute toggle
+  (function () {
+    const btn = document.querySelector('.video-unmute');
+    if (!btn) return;
+    const video = btn.closest('.video-player').querySelector('video');
+    btn.addEventListener('click', function () {
+      video.muted = !video.muted;
+      if (!video.muted) video.volume = 0.1;
+      btn.classList.toggle('is-unmuted', !video.muted);
+      btn.setAttribute('aria-label', video.muted ? 'Unmute video' : 'Mute video');
+    });
+  }());
+</script>
+
+</body>
+</html>
